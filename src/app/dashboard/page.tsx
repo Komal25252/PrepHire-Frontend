@@ -42,10 +42,26 @@ interface SessionData {
 
 export default function DashboardPage() {
   const [sessions, setSessions] = useState<SessionData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const history = JSON.parse(sessionStorage.getItem('sessionHistory') || '[]');
-    setSessions(history);
+    fetch('/api/sessions')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setSessions(data.map((s: any) => ({
+            id: s.sessionId,
+            date: s.date,
+            domain: s.domain,
+            difficulty: s.difficulty,
+            score: s.score,
+            duration: s.duration,
+            status: s.status,
+          })));
+        }
+      })
+      .catch(err => console.error('Failed to load sessions:', err))
+      .finally(() => setLoading(false));
   }, []);
 
   const totalSessions = sessions.length;
@@ -131,7 +147,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts Section */}
-        {sessions.length > 0 ? (
+        {loading ? (
+          <div className="rounded-2xl p-16 text-center mb-12" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
+            <p className="text-lg opacity-40 animate-pulse" style={{ color: 'var(--color-text)' }}>Loading your history...</p>
+          </div>
+        ) : sessions.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
             {/* Main Score Trend Chart */}
             <div className="lg:col-span-2 rounded-2xl p-8" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
@@ -210,7 +230,7 @@ export default function DashboardPage() {
         )}
 
         {/* Recent Sessions Table */}
-        {sessions.length > 0 && (
+        {!loading && sessions.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--color-text)' }}>Activity History</h2>
             <div className="rounded-2xl overflow-hidden shadow-xl" style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}>

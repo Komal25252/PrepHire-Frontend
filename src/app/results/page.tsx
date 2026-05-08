@@ -106,28 +106,28 @@ export default function ResultsPage() {
     }
   }, [router]);
 
-  // Persist session to History Dashboard
+  // Persist session to MongoDB
   useEffect(() => {
-    if (evaluation && emotionData && results) {
-      const history = JSON.parse(sessionStorage.getItem('sessionHistory') || '[]');
-      const isAlreadySaved = history.some((s: any) => s.id === results.sessionId);
-      
-      if (!isAlreadySaved) {
-        const newSession = {
-          id: results.sessionId,
-          date: results.date || new Date().toISOString(),
-          domain: results.domain,
-          difficulty: results.difficulty,
-          score: evaluation.overall.score,
-          duration: results.responses.length > 5 ? '15m' : '5m', // Simple estimation
-          status: 'completed'
-        };
-        const updatedHistory = [newSession, ...history].slice(0, 50); // Keep last 50
-        sessionStorage.setItem('sessionHistory', JSON.stringify(updatedHistory));
-        console.log(">>> Session successfully saved to dashboard history.");
-      }
-    }
-  }, [evaluation, emotionData, results]);
+    if (!evaluation || !results) return;
+
+    const payload = {
+      sessionId: results.sessionId,
+      date: results.date || new Date().toISOString(),
+      domain: results.domain,
+      difficulty: results.difficulty,
+      score: evaluation.overall.score,
+      duration: results.responses.length > 5 ? '15m' : '5m',
+    };
+
+    fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(r => r.json())
+      .then(() => console.log('>>> Session saved to MongoDB.'))
+      .catch(err => console.error('>>> Failed to save session:', err));
+  }, [evaluation, results]);
 
   const chartData = useMemo(() => {
     if (!emotionData?.timeline || emotionData.timeline.length === 0) return null;
