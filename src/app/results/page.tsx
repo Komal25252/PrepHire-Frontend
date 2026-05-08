@@ -36,6 +36,7 @@ interface EmotionAnalysis {
     dominantEmotion: string;
     interpretation: string;
     suggestions: string[];
+    focusRate?: number;
     trends: {
       fear: { early: number; mid: number; late: number };
       happy: { early: number; mid: number; late: number };
