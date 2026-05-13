@@ -148,7 +148,7 @@ export default function WebcamPanel({
 
   useEffect(() => {
     if (isInterviewActive && streamRef.current) {
-      captureIntervalRef.current = setInterval(captureAndSubmit, 5000);
+      captureIntervalRef.current = setInterval(captureAndSubmit, 3000);
     } else {
       if (captureIntervalRef.current) {
         clearInterval(captureIntervalRef.current);
@@ -202,6 +202,12 @@ export default function WebcamPanel({
       if (!data || data.error || !data.scores) return;
       
       const { emotion, scores } = data;
+      console.log(`>>> EMOTION DATA [Q${currentQuestionIndex}]:`, {
+        dominant: emotion,
+        happy: scores.happy || scores.happiness,
+        fear: scores.fear,
+        neutral: scores.neutral
+      });
       
       // Spike filtering: ignore readings where scores.fear jumps more than 30 points
       if (lastFearScoreRef.current !== null && Math.abs(scores.fear - lastFearScoreRef.current) > 30) {
@@ -217,12 +223,30 @@ export default function WebcamPanel({
       ];
       
       // Average scores
-      const avgScores = { ...scores };
-      if (scoresBufferRef.current.length > 1) {
-        const labels = Object.keys(scores);
-        labels.forEach(label => {
-          const sum = scoresBufferRef.current.reduce((acc, curr) => acc + curr.scores[label], 0);
-          avgScores[label] = sum / scoresBufferRef.current.length;
+      const avgScores: any = {};
+      if (scoresBufferRef.current.length > 0) {
+        // We know exactly which labels we want for the database/schema
+        const targetLabels = ['anger', 'disgust', 'fear', 'happy', 'neutral', 'sadness', 'surprise'];
+        
+        targetLabels.forEach(target => {
+          // Check for variations (happy/happiness, sad/sadness)
+          const sourceKeys = Object.keys(scores).filter(k => {
+            const kl = k.toLowerCase();
+            if (target === 'happy') return kl === 'happy' || kl === 'happiness';
+            if (target === 'sadness') return kl === 'sad' || kl === 'sadness';
+            return kl === target;
+          });
+
+          if (sourceKeys.length > 0) {
+            const sum = scoresBufferRef.current.reduce((acc, curr) => {
+              // Get value from any matching source key
+              const val = sourceKeys.reduce((sAcc, sk) => sAcc + (curr.scores[sk] || 0), 0);
+              return acc + val;
+            }, 0);
+            avgScores[target] = sum / scoresBufferRef.current.length;
+          } else {
+            avgScores[target] = 0;
+          }
         });
       }
       

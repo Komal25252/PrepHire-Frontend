@@ -49,27 +49,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing domain or difficulty' }, { status: 400 });
   }
 
-  // --- PRE-GENERATED POOL LOGIC (Optimization) ---
+  // --- PRE-GENERATED POOL LOGIC (Disabled for strict level-based questioning) ---
+  /* 
   if (resumeId) {
-    try {
-      await connectDB();
-      const resume = await Resume.findById(resumeId);
-      if (resume && resume.preGeneratedQuestions?.length > 0) {
-        // Use questionNumber (1-indexed) to pick from the pool
-        const poolIndex = (questionNumber - 1) % resume.preGeneratedQuestions.length;
-        const selected = resume.preGeneratedQuestions[poolIndex];
-        console.log('>>> Using pre-generated question from DB (Optimization Active)');
-        return NextResponse.json({ 
-          question: selected.question, 
-          isMock: false,
-          isPreGenerated: true,
-          type: selected.type
-        });
-      }
-    } catch (err) {
-      console.error('Failed to fetch pre-generated question:', err);
-    }
+    ...
   }
+  */
 
   // No API key — use MongoDB questions directly
   if (process.env.USE_MOCK_QUESTIONS === 'true' || !process.env.GEMINI_API_KEY) {
@@ -95,16 +80,16 @@ export async function POST(req: NextRequest) {
       : '';
 
     const prompt = isFirstQuestion
-      ? `You are interviewing a candidate for a ${difficulty}-level ${domain} role. ${typeContext}${resumeContext}
-Ask the opening interview question. Return ONLY the question, nothing else.`
-      : `You are interviewing a candidate for a ${difficulty}-level ${domain} role. ${typeContext}${resumeContext}
+      ? `You are an expert technical interviewer for a ${difficulty}-level ${domain} role. ${typeContext}${resumeContext}
+Ask a short, direct opening question to start the interview. Keep it to 1-2 sentences. Return ONLY the question.`
+      : `You are an expert technical interviewer for a ${difficulty}-level ${domain} role. ${typeContext}${resumeContext}
 
 Last exchange:
 Q: ${lastExchange!.question}
 A: ${lastExchange!.answer || '(no answer)'}
 
-Ask question ${questionNumber} as a follow-up. Pick one specific thing from their answer and probe deeper. If they skipped, ask a fresh relevant question based on their resume.
-Return ONLY the question, nothing else.`;
+Ask question ${questionNumber} as a short follow-up. Probe a specific technical detail or project from their previous answer. 
+Keep the question punchy and realistic (max 2 sentences). Return ONLY the question.`;
 
     console.log(`>>> Using Gemini API for question generation (Q${questionNumber})`);
     const result = await model.generateContent(prompt);
@@ -115,14 +100,15 @@ Return ONLY the question, nothing else.`;
       .trim();
     return NextResponse.json({ question, isMock: false });
   } catch (err: any) {
-    const status = String(err?.status ?? err?.message ?? '');
-    if (status.includes('429') || status.includes('503') || status.includes('404')) {
-      console.warn('Gemini unavailable, falling back to MongoDB question');
-      console.log('>>> Falling back to manual question from DB (Gemini Error)');
-      const q = await getRandomMockQuestion(domain);
-      return NextResponse.json({ question: q, isMock: true });
-    }
-    console.error('Gemini error:', err);
-    return NextResponse.json({ error: 'Failed to generate question' }, { status: 500 });
+    console.error('>>> GEMINI ERROR DETAILS:', {
+      message: err?.message,
+      status: err?.status,
+      stack: err?.stack?.split('\n')[0]
+    });
+    
+    // Always fallback to mock questions on ANY Gemini error for a smooth user experience
+    console.warn('Gemini failed. Falling back to MongoDB mock questions.');
+    const q = await getRandomMockQuestion(domain);
+    return NextResponse.json({ question: q, isMock: true, debugError: err?.message });
   }
 }

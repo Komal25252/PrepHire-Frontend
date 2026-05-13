@@ -38,16 +38,24 @@ export async function GET(req: Request) {
     // Session level - Advanced Temporal Behavioral Analysis
     const sessionSummary = classifySession(readings);
 
-    const timeline = readings.map(r => ({
-      timestamp: r.timestamp,
-      fear: r.scores.fear,
-      happy: r.scores.happy,
-      neutral: r.scores.neutral,
-      surprise: r.scores.surprise,
-      anger: r.scores.anger,
-      disgust: r.scores.disgust,
-      sadness: r.scores.sadness,
-    }));
+    const timeline = readings.map(r => {
+      const s = r.scores || {};
+      // Ultra-flexible search for happiness in the scores object
+      const happyScore = s.happy ?? s.happiness ?? s.Happy ?? s.Happiness ?? 0;
+      const fearScore = s.fear ?? s.Fear ?? 0;
+      const neutralScore = s.neutral ?? s.Neutral ?? 0;
+      
+      return {
+        timestamp: r.timestamp,
+        fear: fearScore,
+        happy: happyScore,
+        neutral: neutralScore,
+        surprise: s.surprise ?? 0,
+        anger: s.anger ?? 0,
+        disgust: s.disgust ?? 0,
+        sadness: s.sadness ?? s.sad ?? 0,
+      };
+    });
 
     return NextResponse.json({
       perQuestion,

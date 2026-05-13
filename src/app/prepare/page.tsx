@@ -174,9 +174,18 @@ export default function PreparePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Resume Upload */}
-              <div className="rounded-xl p-8 border-2 border-dashed transition cursor-pointer" style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-secondary)' }}>
-                <label className="block cursor-pointer">
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} className="hidden" />
+              <div 
+                className={`rounded-xl p-8 border-2 border-dashed transition relative ${selectedDomain ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`} 
+                style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-secondary)' }}
+              >
+                <label className={`block ${selectedDomain ? 'pointer-events-none' : 'cursor-pointer'}`}>
+                  <input 
+                    type="file" 
+                    accept=".pdf,.doc,.docx" 
+                    onChange={handleResumeUpload} 
+                    className="hidden" 
+                    disabled={!!selectedDomain}
+                  />
                   <div className="flex flex-col items-center">
                     <Upload className="w-16 h-16 mb-4" style={{ color: 'var(--color-accent)' }} />
                     <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-secondary)' }}>Upload Your Resume</h3>
@@ -190,8 +199,19 @@ export default function PreparePage() {
                       </div>
                     ) : resumeFile ? (
                       <div style={{ width: '100%' }}>
-                        <div className="rounded p-3 w-full text-center" style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-accent)' }}>
+                        <div className="rounded p-3 w-full text-center flex items-center justify-between" style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-accent)' }}>
                           <p className="font-semibold" style={{ color: 'var(--color-accent)' }}>✓ {resumeFile.name}</p>
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setResumeFile(null);
+                              setDetectedDomain(null);
+                            }}
+                            className="text-xs font-bold underline px-2"
+                            style={{ color: 'var(--color-secondary)' }}
+                          >
+                            Clear
+                          </button>
                         </div>
                         {detectedDomain && detectedConfidence && (
                           <div className="mt-3 rounded p-3 text-center" style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-secondary)' }}>
@@ -202,18 +222,31 @@ export default function PreparePage() {
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm" style={{ color: 'var(--color-text)' }}>PDF, DOC, or DOCX (Max 5MB)</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text)' }}>
+                        {selectedDomain ? "Clear domain selection to upload" : "PDF, DOC, or DOCX (Max 5MB)"}
+                      </p>
                     )}
                   </div>
                 </label>
               </div>
 
               {/* Job Domain Selection */}
-              <div>
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--color-secondary)' }}>
-                  <Briefcase className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
-                  Or Select a Job Domain
-                </h3>
+              <div className={resumeFile ? 'opacity-40 pointer-events-none' : ''}>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--color-secondary)' }}>
+                    <Briefcase className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
+                    Or Select a Job Domain
+                  </h3>
+                  {selectedDomain && (
+                    <button 
+                      onClick={() => setSelectedDomain(null)}
+                      className="text-xs font-bold underline"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   {JOB_DOMAINS.map((domain) => (
                     <button

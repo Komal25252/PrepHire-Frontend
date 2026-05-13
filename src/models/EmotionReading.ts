@@ -21,7 +21,7 @@ const EmotionReadingSchema = new Schema(
       default: 'focused' 
     },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 const EmotionReading = models.EmotionReading || mongoose.model("EmotionReading", EmotionReadingSchema);

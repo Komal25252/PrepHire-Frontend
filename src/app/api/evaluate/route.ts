@@ -114,39 +114,41 @@ export async function POST(req: NextRequest) {
 
   const count = transcript.split('\n\n').length;
 
-  const prompt = `Evaluate a ${difficulty} ${domain} ${type} interview session.${contextChunks}
+  const prompt = `You are an expert Technical Interviewer for ${domain} (${difficulty} level). 
+Evaluate the following ${type} interview transcript based strictly on technical accuracy, problem-solving logic, and communication clarity.${contextChunks}
 
 TRANSCRIPT:
 ${transcript}
 
 EVALUATION RULES:
-1. Score each answer objectively based on domain relevance and context.
-2. Provide concise, actionable feedback.
-3. Return raw JSON ONLY.
+1. TECHNICAL POV: Assess each answer for technical correctness and depth. Did they use the right concepts? Is their logic sound?
+2. GRAMMAR & CLARITY: Identify specific grammatical errors or awkward phrasing in the transcription.
+3. APPROACH TIPS: Provide actionable advice on how to improve their technical problem-solving or communication strategy.
+4. BE RIGOROUS: Do not give generic praise. If an answer is shallow, mark it down and explain why.
 
 JSON STRUCTURE:
 {
   "perQuestion": [
     {
       "score": 0-100, 
-      "strength": "1 sentence", 
-      "weakness": "1 sentence", 
-      "grammar": "Direct feedback on language, clarity, and grammar (1 sentence)",
-      "suggestion": "1 sentence"
+      "strength": "Technical Strength: what they got right technically (1 sentence)", 
+      "weakness": "Technical Weakness: what was missing or incorrect technically (1 sentence)", 
+      "grammar": "Grammar Correction: fix any linguistic errors or improve clarity (1 sentence)",
+      "suggestion": "Approach Tip: how to solve or explain this better (1 sentence)"
     }
   ],
   "overall": {
     "score": 0-100,
-    "strengths": ["point", "point"],
-    "improvements": ["point", "point"],
+    "strengths": ["Technical proficiency in X", "Clear explanation of Y"],
+    "improvements": ["Deepen knowledge of Z", "Structure technical explanations using the STAR method"],
     "recommendation": "Strong Yes|Yes|Maybe|No",
-    "summary": "2-3 sentences"
+    "summary": "Overall technical assessment in 2-3 sentences."
   }
 }`;
 
   try {
     console.log('>>> Using Gemini API for overall evaluation');
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
     const raw = result.response.text().trim()
       .replace(/^```(?:json)?\s*/i, '')
@@ -158,14 +160,16 @@ JSON STRUCTURE:
     if (start === -1 || end === -1) throw new Error('No JSON in response');
 
     const evaluation = JSON.parse(raw.slice(start, end + 1));
+    console.log('>>> Gemini evaluation parsed successfully');
 
     // Ensure perQuestion array matches transcript length
     while (evaluation.perQuestion.length < count) {
       evaluation.perQuestion.push({
-        score: 50,
-        strength: 'Answer provided.',
-        weakness: 'Could not evaluate this answer.',
-        suggestion: 'Be more specific and use concrete examples.',
+        score: 0,
+        strength: 'No technical content detected.',
+        weakness: 'The answer did not address the technical requirements of the question.',
+        grammar: 'N/A',
+        suggestion: 'Ensure you provide a detailed technical response to be evaluated.',
       });
     }
 

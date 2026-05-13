@@ -165,11 +165,11 @@ export default function ResultsPage() {
           fill: true,
         },
         {
-          label: 'Confident',
+          label: 'Happiness / Confidence',
           data: smooth(sorted.map(p => p.happy)),
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          borderWidth: 3,
+          borderColor: '#4ade80',
+          backgroundColor: 'rgba(74, 222, 128, 0.15)',
+          borderWidth: 6,
           tension: 0.5,
           pointRadius: 0,
           pointHoverRadius: 6,
@@ -244,10 +244,10 @@ export default function ResultsPage() {
               color: 'var(--color-accent)' 
             },
             { 
-              label: 'Communication', 
+              label: 'Linguistic Accuracy', 
               value: evaluation.overall.score > 80 ? 'Exceptional' : 'Functional', 
               icon: MessageSquare, 
-              desc: 'Linguistic & engagement flow',
+              desc: 'Grammar & articulation quality',
               color: 'var(--color-secondary)' 
             },
           ].map((m, idx) => (
@@ -287,7 +287,19 @@ export default function ResultsPage() {
                         intersect: false,
                       },
                       plugins: { 
-                        legend: { display: false },
+                        legend: { 
+                          display: true,
+                          position: 'top',
+                          align: 'end',
+                          labels: {
+                            color: 'rgba(255,255,255,0.5)',
+                            font: { size: 10, weight: 'bold' },
+                            boxWidth: 8,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20
+                          }
+                        },
                         tooltip: {
                           enabled: true,
                           backgroundColor: 'rgba(0,0,0,0.8)',
@@ -447,14 +459,14 @@ export default function ResultsPage() {
                            <div className="flex items-start gap-4">
                               <div className="w-1 h-1 rounded-full mt-2 shrink-0" style={{ backgroundColor: 'var(--color-accent)' }} />
                               <div className="flex-1">
-                                <div className="text-xs font-black uppercase mb-1 opacity-50" style={{ color: 'var(--color-accent)' }}>Technical Strength</div>
+                                <div className="text-xs font-black uppercase mb-1 opacity-50" style={{ color: 'var(--color-accent)' }}>Technical Strength (POV)</div>
                                 <p className="text-sm opacity-70">{qEval?.strength || "N/A"}</p>
                               </div>
                            </div>
                            <div className="flex items-start gap-4">
                               <div className="w-1 h-1 rounded-full mt-2 shrink-0" style={{ backgroundColor: 'var(--color-secondary)' }} />
                               <div className="flex-1">
-                                <div className="text-xs font-black uppercase mb-1 opacity-50" style={{ color: 'var(--color-secondary)' }}>Area of Improvement</div>
+                                <div className="text-xs font-black uppercase mb-1 opacity-50" style={{ color: 'var(--color-secondary)' }}>Technical Weakness (POV)</div>
                                 <p className="text-sm opacity-70">{qEval?.weakness || "N/A"}</p>
                               </div>
                            </div>
@@ -466,7 +478,7 @@ export default function ResultsPage() {
                               <p className="text-sm opacity-90 italic">&ldquo;{qEval?.grammar || "Evaluation pending..."}&rdquo;</p>
                            </div>
                            <div>
-                              <div className="text-xs font-black opacity-30 uppercase mb-1 tracking-widest">Actionable Suggestion</div>
+                              <div className="text-xs font-black opacity-30 uppercase mb-1 tracking-widest">Approach Optimization Tips</div>
                               <p className="text-sm opacity-60">{qEval?.suggestion || "Practice technical articulation."}</p>
                            </div>
                         </div>

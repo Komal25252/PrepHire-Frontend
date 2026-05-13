@@ -15,7 +15,7 @@ export function chunkText(text: string, wordsPerChunk: number = 500): string[] {
 export async function preGenerateQuestions(domain: string, resumeText: string) {
   if (!process.env.GEMINI_API_KEY) return [];
   
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   
   const prompt = `
     You are an expert technical interviewer. Based on the following candidate information and resume excerpt, generate exactly 10 high-quality interview questions.
