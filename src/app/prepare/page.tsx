@@ -123,13 +123,12 @@ export default function PreparePage() {
                 </div>
                 {isTechRole(detectedDomain || '') && (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-1000" 
                         style={{ backgroundColor: 'var(--color-accent)', width: `${detectedConfidence}%` }}
                       />
                     </div>
-                    <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{detectedConfidence?.toFixed(1)}%</span>
                   </div>
                 )}
               </div>
@@ -217,7 +216,6 @@ export default function PreparePage() {
                           <div className="mt-3 rounded p-3 text-center" style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-secondary)' }}>
                             <p className="text-xs mb-1" style={{ color: 'var(--color-text)', opacity: 0.7 }}>Detected domain</p>
                             <p className="font-bold capitalize" style={{ color: 'var(--color-secondary)' }}>{detectedDomain}</p>
-                            <p className="text-xs mt-1" style={{ color: 'var(--color-text)', opacity: 0.6 }}>{detectedConfidence.toFixed(1)}% confidence</p>
                           </div>
                         )}
                       </div>
